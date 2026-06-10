@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import AsyncIterator, overload
 
 from config import BlobConfig
 from exceptions import (
@@ -21,7 +21,7 @@ from exceptions import (
     BlobReadError,
     BlobWriteError,
 )
-from types import BlobInfo
+from model_types import BlobInfo
 
 
 @dataclass(slots=True)
@@ -159,6 +159,7 @@ class BlobStore:
         # Verify hash if expected
         if expected_hash is not None and blob_hash != expected_hash:
             from exceptions import BlobHashMismatchError
+
             raise BlobHashMismatchError(
                 f"Computed hash {blob_hash} does not match expected {expected_hash}"
             )
@@ -211,6 +212,7 @@ class BlobStore:
         # Verify hash if expected
         if expected_hash is not None and blob_hash != expected_hash:
             from exceptions import BlobHashMismatchError
+
             raise BlobHashMismatchError(
                 f"Computed hash {blob_hash} does not match expected {expected_hash}"
             )
@@ -348,6 +350,7 @@ class BlobStore:
         created_at = await asyncio.to_thread(lambda: blob_path.stat().st_ctime)
 
         from datetime import datetime, timezone
+
         created_dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
 
         return BlobInfo(

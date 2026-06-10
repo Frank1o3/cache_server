@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -42,8 +42,8 @@ class CacheMetrics:
     duplicate_blobs_prevented: int = 0
     entries_count: int = 0
     blobs_count: int = 0
-    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_reset: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_reset: datetime = field(default_factory=lambda: datetime.now(UTC))
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
@@ -76,7 +76,7 @@ class CacheMetrics:
     @property
     def uptime_seconds(self) -> float:
         """Get uptime in seconds since metrics started."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return (now - self.start_time).total_seconds()
 
     def record_hit(self, bytes_served: int = 0) -> None:
@@ -169,7 +169,7 @@ class CacheMetrics:
                 hit_percentage=self.hit_percentage,
                 total_requests=self.total_requests,
                 uptime_seconds=self.uptime_seconds,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
     def reset(self) -> None:
@@ -184,7 +184,7 @@ class CacheMetrics:
             self.duplicate_blobs_prevented = 0
             self.entries_count = 0
             self.blobs_count = 0
-            self.last_reset = datetime.now(timezone.utc)
+            self.last_reset = datetime.now(UTC)
 
     def export_dict(self) -> dict[str, Any]:
         """Export metrics as a dictionary.
@@ -209,7 +209,7 @@ class CacheMetrics:
                 "uptime_seconds": self.uptime_seconds,
                 "start_time": self.start_time.isoformat(),
                 "last_reset": self.last_reset.isoformat(),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def export_json(self) -> str:

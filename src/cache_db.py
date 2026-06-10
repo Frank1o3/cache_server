@@ -6,11 +6,10 @@ Only metadata is stored in SQLite; response bodies live in blob storage.
 
 from __future__ import annotations
 
-import asyncio
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import Any
 
 import aiosqlite
 
@@ -19,7 +18,7 @@ from exceptions import (
     DatabaseConnectionError,
     DatabaseOperationError,
 )
-from types import CacheEntry, CacheKey
+from model_types import CacheEntry, CacheKey
 
 
 @dataclass(slots=True)
@@ -172,30 +171,33 @@ class CacheDB:
             # First ensure the blob record exists
             await self.increment_blob_reference(entry.blob_hash)
 
-            await self._db.execute("""
+            await self._db.execute(
+                """
                 INSERT INTO cache_entries (
                     url, method, blob_hash, content_type, status_code,
                     size_bytes, etag, last_modified, first_seen,
                     last_hit, hit_count, miss_count, bandwidth_saved,
                     score, expiration
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                entry.key.url,
-                entry.key.method,
-                entry.blob_hash,
-                entry.content_type,
-                entry.status_code,
-                entry.size_bytes,
-                entry.etag,
-                entry.last_modified,
-                entry.first_seen.isoformat(),
-                entry.last_hit.isoformat() if entry.last_hit else None,
-                entry.hit_count,
-                entry.miss_count,
-                entry.bandwidth_saved,
-                entry.score,
-                entry.expiration.isoformat() if entry.expiration else None,
-            ))
+            """,
+                (
+                    entry.key.url,
+                    entry.key.method,
+                    entry.blob_hash,
+                    entry.content_type,
+                    entry.status_code,
+                    entry.size_bytes,
+                    entry.etag,
+                    entry.last_modified,
+                    entry.first_seen.isoformat(),
+                    entry.last_hit.isoformat() if entry.last_hit else None,
+                    entry.hit_count,
+                    entry.miss_count,
+                    entry.bandwidth_saved,
+                    entry.score,
+                    entry.expiration.isoformat() if entry.expiration else None,
+                ),
+            )
             await self._db.commit()
         except aiosqlite.Error as e:
             raise DatabaseOperationError(f"Failed to add cache entry: {e}") from e
@@ -282,13 +284,16 @@ class CacheDB:
         now = datetime.now(timezone.utc).isoformat()
 
         try:
-            await self._db.execute("""
+            await self._db.execute(
+                """
                 UPDATE cache_entries
                 SET hit_count = hit_count + 1,
                     last_hit = ?,
                     bandwidth_saved = bandwidth_saved + ?
                 WHERE url = ? AND method = ?
-            """, (now, bytes_served, url, method))
+            """,
+                (now, bytes_served, url, method),
+            )
             await self._db.commit()
         except aiosqlite.Error as e:
             raise DatabaseOperationError(f"Failed to record cache hit: {e}") from e
@@ -307,11 +312,14 @@ class CacheDB:
             raise DatabaseConnectionError("Database not connected")
 
         try:
-            await self._db.execute("""
+            await self._db.execute(
+                """
                 UPDATE cache_entries
                 SET miss_count = miss_count + 1
                 WHERE url = ? AND method = ?
-            """, (url, method))
+            """,
+                (url, method),
+            )
             await self._db.commit()
         except aiosqlite.Error as e:
             raise DatabaseOperationError(f"Failed to record cache miss: {e}") from e
@@ -601,9 +609,7 @@ class CacheDB:
         if self._db is None:
             raise DatabaseConnectionError("Database not connected")
 
-        async with self._db.execute(
-            "SELECT COUNT(*) FROM cache_entries"
-        ) as cursor:
+        async with self._db.execute("SELECT COUNT(*) FROM cache_entries") as cursor:
             row = await cursor.fetchone()
             return row[0] if row else 0
 

@@ -6,7 +6,7 @@ of HTTP responses. These validators support future HTTP caching behavior.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from typing import Final
 
 # Cacheable HTTP status codes
@@ -194,10 +194,10 @@ def is_expired(entry_expiration: datetime | None, current_time: datetime | None 
 
     Examples:
         >>> from datetime import datetime, timezone, timedelta
-        >>> future = datetime.now(timezone.utc) + timedelta(hours=1)
+        >>> future = datetime.now(UTC) + timedelta(hours=1)
         >>> is_expired(future)
         False
-        >>> past = datetime.now(timezone.utc) - timedelta(hours=1)
+        >>> past = datetime.now(UTC) - timedelta(hours=1)
         >>> is_expired(past)
         True
     """
@@ -205,13 +205,13 @@ def is_expired(entry_expiration: datetime | None, current_time: datetime | None 
         return False
 
     if current_time is None:
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
     # Ensure both datetimes are timezone-aware
     if entry_expiration.tzinfo is None:
-        entry_expiration = entry_expiration.replace(tzinfo=timezone.utc)
+        entry_expiration = entry_expiration.replace(tzinfo=UTC)
     if current_time.tzinfo is None:
-        current_time = current_time.replace(tzinfo=timezone.utc)
+        current_time = current_time.replace(tzinfo=UTC)
 
     return current_time > entry_expiration
 
@@ -295,8 +295,7 @@ def ttl_from_headers(headers: dict[str, str], default_ttl: int = 3600) -> int:
     if "max-age=" in cache_control:
         try:
             max_age_str = cache_control.split("max-age=")[1].split(",")[0]
-            max_age = int(max_age_str.strip())
-            return max_age
+            return int(max_age_str.strip())
         except (IndexError, ValueError):
             pass
 
@@ -304,8 +303,7 @@ def ttl_from_headers(headers: dict[str, str], default_ttl: int = 3600) -> int:
     if "s-maxage=" in cache_control:
         try:
             s_maxage_str = cache_control.split("s-maxage=")[1].split(",")[0]
-            s_maxage = int(s_maxage_str.strip())
-            return s_maxage
+            return int(s_maxage_str.strip())
         except (IndexError, ValueError):
             pass
 
@@ -317,8 +315,8 @@ def ttl_from_headers(headers: dict[str, str], default_ttl: int = 3600) -> int:
             from email.utils import parsedate_to_datetime
             expires_dt = parsedate_to_datetime(expires)
             if expires_dt.tzinfo is None:
-                expires_dt = expires_dt.replace(tzinfo=timezone.utc)
-            now = datetime.now(timezone.utc)
+                expires_dt = expires_dt.replace(tzinfo=UTC)
+            now = datetime.now(UTC)
             ttl = int((expires_dt - now).total_seconds())
             return max(0, ttl)
         except (ValueError, TypeError):
@@ -407,9 +405,9 @@ def compute_freshness_lifetime(
             expires_dt = parsedate_to_datetime(expires)
             date_dt = parsedate_to_datetime(date)
             if expires_dt.tzinfo is None:
-                expires_dt = expires_dt.replace(tzinfo=timezone.utc)
+                expires_dt = expires_dt.replace(tzinfo=UTC)
             if date_dt.tzinfo is None:
-                date_dt = date_dt.replace(tzinfo=timezone.utc)
+                date_dt = date_dt.replace(tzinfo=UTC)
             delta = int((expires_dt - date_dt).total_seconds())
             return max(0, delta)
         except (ValueError, TypeError):
@@ -423,8 +421,8 @@ def compute_freshness_lifetime(
             from email.utils import parsedate_to_datetime
             modified_dt = parsedate_to_datetime(last_modified)
             if modified_dt.tzinfo is None:
-                modified_dt = modified_dt.replace(tzinfo=timezone.utc)
-            now = datetime.now(timezone.utc)
+                modified_dt = modified_dt.replace(tzinfo=UTC)
+            now = datetime.now(UTC)
             age = (now - modified_dt).total_seconds()
             heuristic_ttl = int(age * 0.1)
             # Cap heuristic TTL

@@ -14,11 +14,10 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime
 
 from config import EvictionConfig
-from types import CacheEntry, EvictionCandidate
+from model_types import CacheEntry, EvictionCandidate
 
 
 @dataclass(slots=True)
@@ -115,11 +114,11 @@ class EvictionEngine:
             Eviction score (lower = more likely to evict).
         """
         if current_time is None:
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
         # Ensure current_time is timezone-aware
         if current_time.tzinfo is None:
-            current_time = current_time.replace(tzinfo=timezone.utc)
+            current_time = current_time.replace(tzinfo=UTC)
 
         # Calculate individual component scores (0.0 to 1.0, higher = keep)
         frequency_score = self._calculate_frequency_score(entry, max_hit_count)
@@ -184,15 +183,11 @@ class EvictionEngine:
         Returns:
             Recency score between 0.0 and 1.0.
         """
-        if entry.last_hit is None:
-            # No hits yet - use first_seen as proxy
-            last_access = entry.first_seen
-        else:
-            last_access = entry.last_hit
+        last_access = entry.first_seen if entry.last_hit is None else entry.last_hit
 
         # Ensure timezone awareness
         if last_access.tzinfo is None:
-            last_access = last_access.replace(tzinfo=timezone.utc)
+            last_access = last_access.replace(tzinfo=UTC)
 
         seconds_since_access = (current_time - last_access).total_seconds()
 
@@ -223,7 +218,7 @@ class EvictionEngine:
             Age score between 0.0 and 1.0.
         """
         if entry.first_seen.tzinfo is None:
-            first_seen = entry.first_seen.replace(tzinfo=timezone.utc)
+            first_seen = entry.first_seen.replace(tzinfo=UTC)
         else:
             first_seen = entry.first_seen
 
@@ -276,9 +271,8 @@ class EvictionEngine:
 
         # Normalize: assume max latency of 5000ms
         max_latency = 5000.0
-        normalized = min(latency_ms / max_latency, 1.0)
+        return min(latency_ms / max_latency, 1.0)
 
-        return normalized
 
     def _calculate_mru_bonus(self, entry: CacheEntry, current_time: datetime) -> float:
         """Calculate MRU bonus score.
@@ -297,7 +291,7 @@ class EvictionEngine:
             return 0.0
 
         if entry.last_hit.tzinfo is None:
-            last_hit = entry.last_hit.replace(tzinfo=timezone.utc)
+            last_hit = entry.last_hit.replace(tzinfo=UTC)
         else:
             last_hit = entry.last_hit
 
@@ -333,7 +327,7 @@ class EvictionEngine:
             True if the entry should be evicted.
         """
         if current_time is None:
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
         # Check if under limits
         under_count_limit = current_count <= self.config.target_count
@@ -344,7 +338,7 @@ class EvictionEngine:
 
         # Check grace period
         if entry.first_seen.tzinfo is None:
-            first_seen = entry.first_seen.replace(tzinfo=timezone.utc)
+            first_seen = entry.first_seen.replace(tzinfo=UTC)
         else:
             first_seen = entry.first_seen
 
@@ -377,7 +371,7 @@ class EvictionEngine:
             return []
 
         if current_time is None:
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
         # Calculate max values for normalization
         max_hit_count = max((e.hit_count for e in entries), default=1)
@@ -386,7 +380,7 @@ class EvictionEngine:
         max_age_seconds = 0.0
         for entry in entries:
             if entry.first_seen.tzinfo is None:
-                first_seen = entry.first_seen.replace(tzinfo=timezone.utc)
+                first_seen = entry.first_seen.replace(tzinfo=UTC)
             else:
                 first_seen = entry.first_seen
             age = (current_time - first_seen).total_seconds()
@@ -433,7 +427,7 @@ class EvictionEngine:
             return []
 
         if current_time is None:
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
         candidates = self.rank_entries(entries, current_time)
 
@@ -446,12 +440,11 @@ class EvictionEngine:
         freed_count = 0
         freed_size = 0
 
-        for candidate in candidates:
+        for freed_count, candidate in enumerate(candidates):
             if freed_count >= target_count_reduction and freed_size >= target_size_reduction:
                 break
 
             result.append(candidate)
-            freed_count += 1
             freed_size += candidate.entry.size_bytes
 
         return result
@@ -477,9 +470,9 @@ class EvictionEngine:
         if entry.last_hit is None:
             reasons.append((self.weights.recency, "never_accessed"))
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if entry.first_seen.tzinfo is None:
-            first_seen = entry.first_seen.replace(tzinfo=timezone.utc)
+            first_seen = entry.first_seen.replace(tzinfo=UTC)
         else:
             first_seen = entry.first_seen
 

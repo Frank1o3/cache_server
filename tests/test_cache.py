@@ -2,26 +2,25 @@
 
 from __future__ import annotations
 
-import asyncio
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
-from blob_store import BlobStore
-from cache_db import CacheDB
-from cache_engine import EvictionEngine, ScoringWeights
-from config import (
+from src.blob_store import BlobStore
+from src.cache_db import CacheDB
+from src.cache_engine import EvictionEngine, ScoringWeights
+from src.config import (
     BlobConfig,
     CacheConfig,
     DatabaseConfig,
     EvictionConfig,
 )
-from exceptions import BlobNotFoundError
-from metrics import CacheMetrics, CacheMetricsSnapshot
-from types import CacheEntry, CacheKey
-from validators import (
+from src.exceptions import BlobNotFoundError
+from src.metrics import CacheMetrics, CacheMetricsSnapshot
+from src.model_types import CacheEntry, CacheKey
+from src.validators import (
     is_cacheable_content_type,
     is_cacheable_method,
     is_cacheable_status,
@@ -30,7 +29,6 @@ from validators import (
     should_revalidate,
     ttl_from_headers,
 )
-
 
 # ============================================================================
 # Hashing Tests
@@ -224,7 +222,7 @@ class TestCacheScoring:
     def test_score_entry_recency_impact(self) -> None:
         """Test that recency affects score."""
         engine = EvictionEngine()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         key = CacheKey(url="http://example.com/test", method="GET")
 
@@ -306,7 +304,7 @@ class TestCacheScoring:
     def test_rank_entries(self) -> None:
         """Test entry ranking."""
         engine = EvictionEngine()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         entries = [
             CacheEntry(
@@ -490,7 +488,7 @@ class TestExpirationHandling:
     @pytest.mark.asyncio
     async def test_list_expired_entries(self, cache_db: CacheDB) -> None:
         """Test listing expired entries."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         past = now - timedelta(hours=1)
         future = now + timedelta(hours=1)
 
@@ -527,7 +525,7 @@ class TestExpirationHandling:
     async def test_update_expiration(self, cache_db: CacheDB) -> None:
         """Test updating entry expiration."""
         key = CacheKey(url="http://example.com/exp", method="GET")
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         future = now + timedelta(hours=1)
 
         entry = CacheEntry(
@@ -547,7 +545,7 @@ class TestExpirationHandling:
 
     def test_is_expired_function(self) -> None:
         """Test is_expired validator function."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         past = now - timedelta(hours=1)
         future = now + timedelta(hours=1)
 

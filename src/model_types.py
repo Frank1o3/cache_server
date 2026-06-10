@@ -6,12 +6,10 @@ All dataclasses use slots=True for memory efficiency.
 
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -65,7 +63,7 @@ class CacheEntry:
     size_bytes: int
     etag: str | None = None
     last_modified: str | None = None
-    first_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    first_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
     last_hit: datetime | None = None
     hit_count: int = 0
     miss_count: int = 0
@@ -78,12 +76,12 @@ class CacheEntry:
         """Check if the entry has expired."""
         if self.expiration is None:
             return False
-        return datetime.now(timezone.utc) > self.expiration
+        return datetime.now(UTC) > self.expiration
 
     @property
     def age_seconds(self) -> float:
         """Get the age of this entry in seconds."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return (now - self.first_seen).total_seconds()
 
 
@@ -118,7 +116,7 @@ class BlobInfo:
     blob_path: Path
     size_bytes: int
     reference_count: int
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class CacheStatus(Enum):
@@ -160,7 +158,7 @@ class ValidationContext:
     entry: CacheEntry
     request_headers: dict[str, str] = field(default_factory=dict)
     response_headers: dict[str, str] = field(default_factory=dict)
-    current_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    current_time: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(slots=True, frozen=True)
