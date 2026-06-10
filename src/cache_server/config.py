@@ -162,6 +162,7 @@ class CacheConfig:
             A new CacheConfig with test-friendly settings.
         """
         import tempfile
+
         temp_dir = Path(tempfile.mkdtemp())
         return cls(
             cache_dir=temp_dir,

@@ -219,6 +219,7 @@ class CacheMetrics:
             JSON string representation of metrics.
         """
         import json
+
         return json.dumps(self.export_dict(), indent=2)
 
     def increment_hits(self, count: int = 1) -> None:

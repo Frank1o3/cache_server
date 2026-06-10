@@ -10,94 +10,106 @@ from datetime import UTC, datetime
 from typing import Final
 
 # Cacheable HTTP status codes
-CACHEABLE_STATUS_CODES: Final[frozenset[int]] = frozenset({
-    200,  # OK
-    203,  # Non-Authoritative Information
-    204,  # No Content
-    206,  # Partial Content
-    300,  # Multiple Choices
-    301,  # Moved Permanently
-    308,  # Permanent Redirect
-})
+CACHEABLE_STATUS_CODES: Final[frozenset[int]] = frozenset(
+    {
+        200,  # OK
+        203,  # Non-Authoritative Information
+        204,  # No Content
+        206,  # Partial Content
+        300,  # Multiple Choices
+        301,  # Moved Permanently
+        308,  # Permanent Redirect
+    }
+)
 
 # Non-cacheable HTTP status codes (explicitly)
-NON_CACHEABLE_STATUS_CODES: Final[frozenset[int]] = frozenset({
-    201,  # Created
-    202,  # Accepted
-    205,  # Reset Content
-    302,  # Found (unless explicitly cached)
-    303,  # See Other
-    304,  # Not Modified
-    307,  # Temporary Redirect
-    400,  # Bad Request
-    401,  # Unauthorized
-    403,  # Forbidden
-    404,  # Not Found
-    405,  # Method Not Allowed
-    410,  # Gone
-    414,  # URI Too Long
-    416,  # Range Not Satisfiable
-    423,  # Locked
-    500,  # Internal Server Error
-    502,  # Bad Gateway
-    503,  # Service Unavailable
-    504,  # Gateway Timeout
-})
+NON_CACHEABLE_STATUS_CODES: Final[frozenset[int]] = frozenset(
+    {
+        201,  # Created
+        202,  # Accepted
+        205,  # Reset Content
+        302,  # Found (unless explicitly cached)
+        303,  # See Other
+        304,  # Not Modified
+        307,  # Temporary Redirect
+        400,  # Bad Request
+        401,  # Unauthorized
+        403,  # Forbidden
+        404,  # Not Found
+        405,  # Method Not Allowed
+        410,  # Gone
+        414,  # URI Too Long
+        416,  # Range Not Satisfiable
+        423,  # Locked
+        500,  # Internal Server Error
+        502,  # Bad Gateway
+        503,  # Service Unavailable
+        504,  # Gateway Timeout
+    }
+)
 
 # Cacheable HTTP methods
-CACHEABLE_METHODS: Final[frozenset[str]] = frozenset({
-    "GET",
-    "HEAD",
-    "OPTIONS",
-})
+CACHEABLE_METHODS: Final[frozenset[str]] = frozenset(
+    {
+        "GET",
+        "HEAD",
+        "OPTIONS",
+    }
+)
 
 # Non-cacheable HTTP methods
-NON_CACHEABLE_METHODS: Final[frozenset[str]] = frozenset({
-    "POST",
-    "PUT",
-    "DELETE",
-    "PATCH",
-    "CONNECT",
-    "TRACE",
-})
+NON_CACHEABLE_METHODS: Final[frozenset[str]] = frozenset(
+    {
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "CONNECT",
+        "TRACE",
+    }
+)
 
 # Content types that are generally cacheable
-CACHEABLE_CONTENT_TYPES: Final[frozenset[str]] = frozenset({
-    "text/html",
-    "text/css",
-    "text/plain",
-    "text/xml",
-    "application/json",
-    "application/javascript",
-    "application/x-javascript",
-    "text/javascript",
-    "application/xml",
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/svg+xml",
-    "image/webp",
-    "image/avif",
-    "image/x-icon",
-    "image/vnd.microsoft.icon",
-    "font/woff",
-    "font/woff2",
-    "application/font-woff",
-    "application/font-woff2",
-    "audio/mpeg",
-    "audio/ogg",
-    "audio/webm",
-    "video/mp4",
-    "video/webm",
-    "video/ogg",
-    "application/octet-stream",
-})
+CACHEABLE_CONTENT_TYPES: Final[frozenset[str]] = frozenset(
+    {
+        "text/html",
+        "text/css",
+        "text/plain",
+        "text/xml",
+        "application/json",
+        "application/javascript",
+        "application/x-javascript",
+        "text/javascript",
+        "application/xml",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/svg+xml",
+        "image/webp",
+        "image/avif",
+        "image/x-icon",
+        "image/vnd.microsoft.icon",
+        "font/woff",
+        "font/woff2",
+        "application/font-woff",
+        "application/font-woff2",
+        "audio/mpeg",
+        "audio/ogg",
+        "audio/webm",
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "application/octet-stream",
+    }
+)
 
 # Content types that should never be cached
-NON_CACHEABLE_CONTENT_TYPES: Final[frozenset[str]] = frozenset({
-    "text/event-stream",  # Server-Sent Events
-    "application/x-server-side-parsed-html",  # SSHTML
-})
+NON_CACHEABLE_CONTENT_TYPES: Final[frozenset[str]] = frozenset(
+    {
+        "text/event-stream",  # Server-Sent Events
+        "application/x-server-side-parsed-html",  # SSHTML
+    }
+)
 
 
 def is_cacheable_status(status_code: int) -> bool:
@@ -176,7 +188,11 @@ def is_cacheable_content_type(content_type: str | None) -> bool:
     # Default: text/* and application/* are generally cacheable
     if base_type.startswith("text/") or base_type.startswith("application/"):
         return True
-    if base_type.startswith("image/") or base_type.startswith("video/") or base_type.startswith("audio/"):
+    if (
+        base_type.startswith("image/")
+        or base_type.startswith("video/")
+        or base_type.startswith("audio/")
+    ):
         return True
 
     return True
@@ -296,7 +312,7 @@ def ttl_from_headers(headers: dict[str, str], default_ttl: int = 3600) -> int:
         try:
             max_age_str = cache_control.split("max-age=")[1].split(",")[0]
             return int(max_age_str.strip())
-        except (IndexError, ValueError):
+        except IndexError, ValueError:
             pass
 
     # Check for s-maxage (shared cache)
@@ -304,7 +320,7 @@ def ttl_from_headers(headers: dict[str, str], default_ttl: int = 3600) -> int:
         try:
             s_maxage_str = cache_control.split("s-maxage=")[1].split(",")[0]
             return int(s_maxage_str.strip())
-        except (IndexError, ValueError):
+        except IndexError, ValueError:
             pass
 
     # Check Expires header
@@ -313,13 +329,14 @@ def ttl_from_headers(headers: dict[str, str], default_ttl: int = 3600) -> int:
         try:
             # Parse HTTP date format
             from email.utils import parsedate_to_datetime
+
             expires_dt = parsedate_to_datetime(expires)
             if expires_dt.tzinfo is None:
                 expires_dt = expires_dt.replace(tzinfo=UTC)
             now = datetime.now(UTC)
             ttl = int((expires_dt - now).total_seconds())
             return max(0, ttl)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             pass
 
     # Check for no-cache (can cache but must revalidate)
@@ -402,6 +419,7 @@ def compute_freshness_lifetime(
     if expires and date:
         try:
             from email.utils import parsedate_to_datetime
+
             expires_dt = parsedate_to_datetime(expires)
             date_dt = parsedate_to_datetime(date)
             if expires_dt.tzinfo is None:
@@ -410,7 +428,7 @@ def compute_freshness_lifetime(
                 date_dt = date_dt.replace(tzinfo=UTC)
             delta = int((expires_dt - date_dt).total_seconds())
             return max(0, delta)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             pass
 
     # Heuristic for responses without explicit expiration
@@ -419,6 +437,7 @@ def compute_freshness_lifetime(
     if last_modified:
         try:
             from email.utils import parsedate_to_datetime
+
             modified_dt = parsedate_to_datetime(last_modified)
             if modified_dt.tzinfo is None:
                 modified_dt = modified_dt.replace(tzinfo=UTC)
@@ -427,7 +446,7 @@ def compute_freshness_lifetime(
             heuristic_ttl = int(age * 0.1)
             # Cap heuristic TTL
             return min(heuristic_ttl, default_ttl)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             pass
 
     return default_ttl

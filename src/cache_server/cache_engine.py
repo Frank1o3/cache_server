@@ -16,8 +16,8 @@ import math
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from config import EvictionConfig
-from model_types import CacheEntry, EvictionCandidate
+from src.cache_server.config import EvictionConfig
+from src.cache_server.model_types import CacheEntry, EvictionCandidate
 
 
 @dataclass(slots=True)
@@ -272,7 +272,6 @@ class EvictionEngine:
         # Normalize: assume max latency of 5000ms
         max_latency = 5000.0
         return min(latency_ms / max_latency, 1.0)
-
 
     def _calculate_mru_bonus(self, entry: CacheEntry, current_time: datetime) -> float:
         """Calculate MRU bonus score.
