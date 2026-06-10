@@ -9,19 +9,19 @@ from pathlib import Path
 
 import pytest
 
-from cacheforge.blob_store import BlobStore
-from cacheforge.cache_db import CacheDB
-from cacheforge.cache_engine import EvictionEngine, ScoringWeights
-from cacheforge.config import (
+from blob_store import BlobStore
+from cache_db import CacheDB
+from cache_engine import EvictionEngine, ScoringWeights
+from config import (
     BlobConfig,
     CacheConfig,
     DatabaseConfig,
     EvictionConfig,
 )
-from cacheforge.exceptions import BlobNotFoundError
-from cacheforge.metrics import CacheMetrics, CacheMetricsSnapshot
-from cacheforge.types import CacheEntry, CacheKey
-from cacheforge.validators import (
+from exceptions import BlobNotFoundError
+from metrics import CacheMetrics, CacheMetricsSnapshot
+from types import CacheEntry, CacheKey
+from validators import (
     is_cacheable_content_type,
     is_cacheable_method,
     is_cacheable_status,

@@ -18,12 +18,12 @@ Example:
     ```
 """
 
-from cacheforge.config import CacheConfig
-from cacheforge.cache_engine import EvictionEngine, ScoringWeights
-from cacheforge.cache_db import CacheDB
-from cacheforge.blob_store import BlobStore
-from cacheforge.metrics import CacheMetrics
-from cacheforge.types import CacheEntry, CacheHitResult, CacheKey
+from config import CacheConfig
+from cache_engine import EvictionEngine, ScoringWeights
+from cache_db import CacheDB
+from blob_store import BlobStore
+from metrics import CacheMetrics
+from types import CacheEntry, CacheHitResult, CacheKey
 
 __version__ = "0.1.0"
 __all__ = [

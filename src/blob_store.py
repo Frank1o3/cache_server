@@ -15,13 +15,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import AsyncIterator, overload
 
-from cacheforge.config import BlobConfig
-from cacheforge.exceptions import (
+from config import BlobConfig
+from exceptions import (
     BlobNotFoundError,
     BlobReadError,
     BlobWriteError,
 )
-from cacheforge.types import BlobInfo
+from types import BlobInfo
 
 
 @dataclass(slots=True)
@@ -158,7 +158,7 @@ class BlobStore:
 
         # Verify hash if expected
         if expected_hash is not None and blob_hash != expected_hash:
-            from cacheforge.exceptions import BlobHashMismatchError
+            from exceptions import BlobHashMismatchError
             raise BlobHashMismatchError(
                 f"Computed hash {blob_hash} does not match expected {expected_hash}"
             )
@@ -210,7 +210,7 @@ class BlobStore:
 
         # Verify hash if expected
         if expected_hash is not None and blob_hash != expected_hash:
-            from cacheforge.exceptions import BlobHashMismatchError
+            from exceptions import BlobHashMismatchError
             raise BlobHashMismatchError(
                 f"Computed hash {blob_hash} does not match expected {expected_hash}"
             )
